@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鵝鵝神社秘境</title>
+    <style>
+        /* --- 基礎設定 --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Noto Serif TC", "Songti TC", serif; }
+        body {
+            background-color: #222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- 手機容器模擬 --- */
+        .phone-mockup {
+            width: 100%;
+            max-width: 400px; /* 手機寬度 */
+            height: 850px;
+            background: #fff;
+            border-radius: 40px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- 背景層 --- */
+        .bg-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            /* 這裡換成你的神社模糊背景圖 */
+            background: url('https://images.unsplash.com/photo-1598555857643-26cb49319692?q=80&w=1000&auto=format&fit=crop') no-repeat center center / cover;
+            filter: brightness(0.9) blur(2px);
+            z-index: 1;
+        }
+
+        /* --- 頂部：神社暖簾與鵝鵝 --- */
+        .shrine-top {
+            position: relative;
+            height: 45%; /* 佔據畫面上半部 */
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* 鵝鵝大神 (位於簾子後方) */
+        .goose-god {
+            position: absolute;
+            width: 280px;
+            bottom: -20px; /* 調整位置讓牠看起來探頭 */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2; /* 在背景前，簾子後 */
+            transition: transform 0.3s ease;
+        }
+        
+        /* 簡單的互動：點擊鵝鵝會縮一下 */
+        .goose-god:active { transform: translateX(-50%) scale(0.95); }
+
+        /* 暖簾結構 (Noren) */
+        .noren-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 70%;
+            display: flex;
+            z-index: 3;
+            /* 陰影增加立體感 */
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));
+        }
+
+        .noren-panel {
+            flex: 1;
+            background-color: #f4f1ea; /* 麻布色 */
+            background-image: url("data:image/svg+xml,%3Csvg width='4' height='4' viewBox='0 0 4 4' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 3h1v1H1V3zm2-2h1v1H3V1z' fill='%23dcd9d0' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E"); /* 麻布紋理 */
+            position: relative;
+            border-bottom: 3px solid #d4cdb8;
+            /* 讓簾子中間分開 */
+            margin: 0 2px;
+            border-radius: 0 0 5px 5px;
+        }
+
+        /* 簾子上的紋飾 (CSS畫圓) */
+        .noren-panel::after {
+            content: '';
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            border: 2px solid #2d4059; /* 深藍色 */
+            border-radius: 50%;
+            opacity: 0.6;
+        }
+
+        /* 注連繩 (頂部裝飾) */
+        .shimenawa {
+            position: absolute;
+            top: -10px;
+            width: 110%;
+            left: -5%;
+            height: 60px;
+            background: radial-gradient(circle at 50% 100%, #d4b886, #a68b5b);
+            border-radius: 0 0 50% 50%;
+            z-index: 4;
+            box-shadow: 0 5px 5px rgba(0,0,0,0.2);
+        }
+
+        /* 紙垂 (白色閃電紙) */
+        .shide {
+            position: absolute;
+            top: 40px;
+            width: 20px;
+            height: 40px;
+            background: white;
+            z-index: 5;
+            clip-path: polygon(0% 0%, 100% 0%, 70% 30%, 100% 30%, 70% 60%, 100% 60%, 50% 100%, 0% 60%, 30% 60%, 0% 30%, 30% 30%);
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+        .shide:nth-child(1) { left: 20%; transform: rotate(-5deg); }
+        .shide:nth-child(2) { left: 50%; transform: translateX(-50%); }
+        .shide:nth-child(3) { right: 20%; transform: rotate(5deg); }
+
+
+        /* --- 中間：繪馬輪播區 --- */
+        .carousel-area {
+            flex: 1;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding-top: 20px;
+        }
+
+        .carousel-container {
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .carousel-track {
+            display: flex;
+            transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            padding-left: 50%; /* Center alignment hack */
+        }
+
+        /* 繪馬卡片 (Ema Card) */
+        .ema-card {
+            flex: 0 0 160px; /* 卡片寬度 */
+            height: 200px;
+            background-color: #e6cca0; /* 木頭色 */
+            background-image: linear-gradient(to bottom right, #e6cca0, #dcb980);
+            margin: 0 15px;
+            position: relative;
+            /* 繪馬形狀：五角形 */
+            clip-path: polygon(50% 0%, 100% 25%, 100% 100%, 0% 100%, 0% 25%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.2); /* Note: clip-path clips shadow too, visual trick often needed, skipping for simplicity */
+            transform: translateX(-50%); /* Center alignment hack adjustment */
+            text-align: center;
+            border-top: 5px solid #b89060;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .ema-card.active {
+            transform: translateX(-50%) scale(1.1);
+            filter: brightness(1.1);
+        }
+
+        /* 繪馬上的紅繩 */
+        .ema-string {
+            position: absolute;
+            top: 15px;
+            width: 4px;
+            height: 40px;
+            background: #d62828;
+            border-radius: 2px;
+        }
+
+        .ema-content {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 90%;
+        }
+
+        .item-img {
+            width: 70px;
+            height: 70px;
+            background: #fff;
+            border-radius: 50%;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+        }
+
+        .item-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #5d4037;
+            margin-bottom: 5px;
+        }
+
+        .item-rate {
+            font-size: 12px;
+            color: #d62828;
+            font-weight: bold;
+            border: 1px solid #d62828;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+
+        /* 導航點點 */
+        .dots {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 50%;
+            margin: 0 5px;
+            transition: background 0.3s;
+        }
+        .dot.active { background: #fff; }
+
+
+        /* --- 底部：控制區 --- */
+        .bottom-controls {
+            height: 120px;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+        }
+
+        /* 御朱印按鈕 */
+        .draw-btn {
+            width: 80px;
+            height: 80px;
+            background-color: #d62828; /* 朱紅色 */
+            color: white;
+            border: 3px solid #fff;
+            border-radius: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(214, 40, 40, 0.5);
+            transition: transform 0.1s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            writing-mode: vertical-rl; /* 直書 */
+            text-orientation: upright;
+            letter-spacing: 5px;
+        }
+
+        .draw-btn:active {
+            transform: scale(0.95);
+            background-color: #b01e1e;
+        }
+
+        /* 結果彈窗 (簡單模擬) */
+        #result-modal {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 100;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+            text-align: center;
+        }
+        #result-text { font-size: 24px; margin-bottom: 20px; font-weight: bold; }
+        .close-btn {
+            padding: 10px 30px;
+            background: transparent;
+            border: 1px solid white;
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="phone-mockup">
+    <div class="bg-layer"></div>
+
+    <div class="shrine-top">
+        <div class="shimenawa"></div>
+        <div class="shide"></div> <div class="shide"></div> <div class="shide"></div> <div class="noren-container">
+            <div class="noren-panel"></div>
+            <div class="noren-panel"></div>
+        </div>
+
+        <img src="https://images.unsplash.com/photo-1555029803-518844f23499?q=80&w=600&auto=format&fit=crop" alt="Goose God" class="goose-god">
+    </div>
+
+    <div class="carousel-area">
+        <div class="carousel-container" id="carousel">
+            <div class="carousel-track" id="track">
+                </div>
+        </div>
+        <div class="dots" id="dots"></div>
+    </div>
+
+    <div class="bottom-controls">
+        <button class="draw-btn" id="drawBtn">祈願</button>
+    </div>
+
+    <div id="result-modal">
+        <div style="font-size: 50px; margin-bottom: 10px;">✨</div>
+        <div id="result-text">獲得神諭</div>
+        <button class="close-btn" onclick="closeModal()">收下祝福</button>
+    </div>
+</div>
+
+<script>
+    // --- 獎品資料與機率 (照舊) ---
+    const prizes = [
+        { id: 1, name: "傳說鵝飼料", rate: "2%", tier: "SSR", icon: "💎" },
+        { id: 2, name: "湖畔下午茶", rate: "8%", tier: "SR", icon: "🍵" },
+        { id: 3, name: "期末考歐趴", rate: "15%", tier: "SR", icon: "💯" },
+        { id: 4, name: "好運御守", rate: "25%", tier: "R", icon: "🧧" },
+        { id: 5, name: "新鮮吐司邊", rate: "50%", tier: "N", icon: "🍞" }
+    ];
+
+    const track = document.getElementById('track');
+    const dotsContainer = document.getElementById('dots');
+    let currentIndex = 0;
+
+    // --- 初始化輪播 ---
+    function initCarousel() {
+        prizes.forEach((prize, index) => {
+            // 建立繪馬卡片
+            const card = document.createElement('div');
+            card.className = `ema-card ${index === 0 ? 'active' : ''}`;
+            card.innerHTML = `
+                <div class="ema-string"></div>
+                <div class="ema-content">
+                    <div class="item-img">${prize.icon}</div>
+                    <div class="item-name">${prize.name}</div>
+                    <div class="item-rate">${prize.tier} ${prize.rate}</div>
+                </div>
+            `;
+            // 點擊卡片也可以切換到該張
+            card.onclick = () => scrollToSlide(index);
+            track.appendChild(card);
+
+            // 建立點點
+            const dot = document.createElement('div');
+            dot.className = `dot ${index === 0 ? 'active' : ''}`;
+            dotsContainer.appendChild(dot);
+        });
+        updateCarousel();
+    }
+
+    // --- 輪播邏輯 ---
+    function scrollToSlide(index) {
+        currentIndex = index;
+        updateCarousel();
+    }
+
+    function updateCarousel() {
+        const cardWidth = 190; // 卡片寬 + margin
+        // 算出讓目前卡片置中的偏移量
+        const offset = -(currentIndex * cardWidth);
+        track.style.transform = `translateX(${offset}px)`;
+
+        // 更新樣式
+        const cards = document.querySelectorAll('.ema-card');
+        const dots = document.querySelectorAll('.dot');
+        
+        cards.forEach((card, i) => {
+            if (i === currentIndex) card.classList.add('active');
+            else card.classList.remove('active');
+        });
+
+        dots.forEach((dot, i) => {
+            if (i === currentIndex) dot.classList.add('active');
+            else dot.classList.remove('active');
+        });
+    }
+
+    // --- 手機滑動支援 (簡易版) ---
+    let startX;
+    track.addEventListener('touchstart', (e) => startX = e.touches[0].clientX);
+    track.addEventListener('touchend', (e) => {
+        const endX = e.changedTouches[0].clientX;
+        if (startX - endX > 50) { // 左滑
+            if (currentIndex < prizes.length - 1) scrollToSlide(currentIndex + 1);
+        } else if (endX - startX > 50) { // 右滑
+            if (currentIndex > 0) scrollToSlide(currentIndex - 1);
+        }
+    });
+
+    // --- 抽獎功能 (照舊邏輯) ---
+    document.getElementById('drawBtn').addEventListener('click', () => {
+        // 簡單模擬機率 (你可以替換成更複雜的邏輯)
+        const rand = Math.random() * 100;
+        let cumulative = 0;
+        let result = prizes[prizes.length - 1]; // 預設
+
+        // 解析機率字串並計算
+        for (let p of prizes) {
+            let rateVal = parseFloat(p.rate);
+            cumulative += rateVal;
+            if (rand <= cumulative) {
+                result = p;
+                break;
+            }
+        }
+
+        // 顯示結果
+        document.getElementById('result-text').innerText = `恭喜獲得：${result.name}`;
+        document.getElementById('result-modal').style.display = 'flex';
+    });
+
+    function closeModal() {
+        document.getElementById('result-modal').style.display = 'none';
+    }
+
+    // 啟動
+    initCarousel();
+
+</script>
+
+</body>
+</html>
